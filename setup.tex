@@ -1,0 +1,18 @@
+As Helen Abbey stated in her article it can be challenging to fit data to the Reed-Frost model due to the specific structure of the model. There are five assumptions that are required for the model \cite{abbey}: 
+\begin{enumerate}
+
+\item{The disease must be \emph{only} spread from infected to susceptible individuals through adequate contact (this varies for different illnesses).}
+\item{A susceptible individual who has had adequate contact with an infectious individual must become infected and infectious only in the next time period.}
+\item{Each individual in the population has the \emph{same, fixed} probability of having adequate contact with another specific individual in the population.}
+\item{The population is closed (no one entering or leaving the population).}
+\item{All above conditions are constant throughout the epidemic.}
+
+\end{enumerate}
+
+The challenges of applying these assumptions to a ‘real world’ dataset become obvious, particularly assumptions two, three, and four. For example, take our current pandemic of SARS-CoV-2, asymptomatic spread is a common form of transmitting the virus to other susceptible people, which would throw off the counts of infected individuals due to under-reporting and under-diagnosis. 
+
+It’s important to note that these assumptions for our model mean that there should be no overlap between generations of infectious individuals and that the model uses the idea that there is a fixed period of time that the infection will last for all individuals \cite{borchering}.
+
+There are two versions of the Reed-Frost Model: deterministic and stochastic. In any deterministic model the output is always the same for a set of parameters and the output doesn’t change no matter how many times the same parameters are plugged in. These types of models do not add in any variability \cite{halloran}. 
+
+However, stochastic models are designed to add ‘randomness’ to emulate the real world. There are different types of stochastic variability, with the main ones being demographic and environmental. A stochastic model will produce a variety of outcomes based on the probability of an event occurring – typically a simulation (with the same parameters) is done multiple times to see the trends of the model \cite{mark}. This iteration gives us the ‘chain’ of binomial probabilities that it’s named after \cite{borchering}.  The stochastic version of the Reed-Frost Model is a chain binomial, where the number of infected individuals has a binomial probability distribution \cite{halloran}. 

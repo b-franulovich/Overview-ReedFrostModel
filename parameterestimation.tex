@@ -1,0 +1,54 @@
+When applying the Reed-Frost Model to data that meets the assumptions laid out in the Setup section there would be counts of infected individuals and the number of susceptibles in each time interval. Helen Abbey has several examples of such data sets including some on measles and chickenpox outbreaks in boarding schools and children's institutions throughout the world \cite{abbey}. In cases like these however, the probability of transmission through adequate contact ($p$) is unknown and needs to be approximated.
+
+To accomplish this we can re-visit our stochastic equation for the binomial distributed number of infectious individuals:  
+\begin{equation}
+    P(I_{t+1}= x) = {S_t \choose x} (1-q^{I_t})^x( q^{I_t}) ^{S_t-x}
+\end{equation}
+
+Then, we can recall the likelihood function for a product of binomial distributions: 
+
+\begin{align} 
+P(X_i= x_i) &= {n_i \choose x_i} p^{x_i}(1-p) ^{n_i-x_i} \nonumber\\
+L(p) &= P(X_1= x_1, X_2= x_2,\ldots,X_n= x_n) \nonumber\\
+L(p) &= P(X_1= x_1)P(X_2= x_2)\cdots P(X_n= x_n) \nonumber\\
+L(p) &= \prod_{i=0}^{n} {n_i \choose x_i} p^{x_i}(1-p) ^{n_i-x_i}
+\end{align}
+
+From there we can apply equation (7) that to equation (6) and we get our likelihood function for the Reed-Frost model:
+
+\begin{equation}
+    L(q)=\prod_{t=0}^{n-1} {S_t \choose x} (1-q^{I_t})^x( q^{I_t}) ^{S_t-x}
+\end{equation}
+
+Notice that we are estimating $q$ since equation (6) is written in terms of $q$ and not $p$. We can recall that $q=1-p$ and we can use that fact to find $\hat{p}$ after obtaining $\hat{q}$.
+
+Now that we have the likelihood function for the model, we want to employ maximum likelihood estimation to get a good idea of what $\hat{p}$ will be for a dataset. To do this typically we would find the log-likelihood function, take its derivative with respect to the parameter in question, set it to zero, and solve.  
+
+\begin{align*}
+    \log_{e} L(q) &= \sum_{t=0}^{n-1} ln {S_t \choose I_{t+1}}+ \sum_{t=0}^{n-1} (I_{t+1})ln(1-q^{I_t})+\sum_{t=0}^{n-1} I_t (S_t-I_{t+1})ln(q) \\
+    \frac{\partial \log_{e} L(q)}{\partial q} &= \sum_{t=0}^{n-1} \frac{I_t(S_{t+1})}{q}-\sum_{t=0}^{n-1} \frac{I_t(I_{t+1})(q^{I_t})}{q(1-q^{I_t})}
+\end{align*}
+
+We can see that our derivative of the log-likehood is a mess and we can't use calculus to solve it; it requires numerical maximization to estimate $q$. Also notice above that we replaced $x_i$ with $I_{t+1}$ since we have a set of values from whatever dataset we use.
+
+To do numerical maximization for the Reed-Frost model I wrote a function in R and applied it to simulated data from our stochastic model described previously. The simulated data that I used is displayed in the following table: 
+
+\begin{center}
+ \begin{tabular}{||c c c||} 
+ \hline
+ Time & Number of Infected & Number of Susceptible \\ [0.5ex] 
+ \hline\hline
+ 0 & 3 & 500 \\ 
+ \hline
+ 1 & 65 & 435 \\
+ \hline 
+ 2 & 425 & 10 \\
+ \hline
+ 3 & 10 & 0\\
+ \hline
+ 4 & 0 & 0\\
+ \hline
+\end{tabular}
+\end{center}
+
+ The parameters used in the stochastic model to generate these values are $p=0.05, I_0=3, S_0=500$. For this data we can see that $\hat{q}$ is\footnote{See appendix for code used to generate $\hat{q}$}: 

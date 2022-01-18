@@ -1,0 +1,45 @@
+The deterministic form of the Reed-Frost Model is as follows:
+\begin{equation}
+     I_{t+1}=S_t(1-q^{I_t})
+\end{equation}
+
+We can recall our assumptions that individuals in the population move into the recovered state after one time step, meaning that $I_t$ and $I_{t+1}$ are independent and that our susceptible individuals in the successive time step are comprised of the number of susceptible individuals in the previous time step after removing the individuals who became infectious:
+\begin{equation}
+    S_{t+1}=S_t-I_{t+1}
+\end{equation}
+Using the same reasoning for the number of  recovered individuals:
+
+\begin{equation}
+   R_{t+1}=R_t+I_t
+\end{equation}
+
+These equations give the counts of individuals in the three states at each time step. 
+
+The following plots \footnote{see appendix for code used to generate all plots} (figure 1 and 2) shows a simulation for a deterministic model where the probability of transmission is $p=0.10$, there are initially 200 susceptible individuals in the population ($S_0=100$) and there is initially one infectious individual ($I_0=1$):
+
+
+<< deterministic,cache=T,echo=F,fig.pos="H",fig.cap=c("A plot of the number of infectious individuals over time as modeled by the Reed-Frost Deterministic Model with initial conditions A plot of the stochastic Reed-Frost model of infectious individuals over time with initial conditions of $p=0.10,S_0=200,I_0=1$.","A plot of the number of susceptible individuals over time as modeled by the Reed-Frost Deterministic Model with initial conditions A plot of the stochastic Reed-Frost model of infectious individuals over time with initial conditions of $p=0.10,S_0=200,I_0=1$.")>>=
+
+p=0.01
+q=1-p
+I=rep(0,15)
+S=rep(0,15)
+S[1]=200
+I[1]=1
+
+for (t in 1:15){
+  I[t+1]=S[t]*(1-q^(I[t]))
+  S[t+1]=S[t]-I[t+1]
+}
+
+
+plot(I,ylab="Number of Infected Individuals",xlab="Time",
+     main="Deterministic Model of Infected Individuals")
+lines(I,lty=2,col="#6666FF")
+plot(S,ylab="Number of Susceptible Individuals",xlab="Time",
+     main="Deterministic Model of Susceptible Individuals")
+lines(S,lty=2,col="#9900CC")
+     
+@
+
+It can be observed from our example that when there are no longer any infectious individuals in the population, there are some individuals who remained susceptible and never contracted the disease. In this simulation (with $p=0.10$) there were 39 out of the original 200 susceptible individuals remaining. 

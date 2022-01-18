@@ -1,0 +1,233 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry} 
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\pagestyle{fancy}
+\usepackage{url} %making links in bibliography
+\usepackage{setspace} %double spacing
+\usepackage{float} % allows fig.pos="H"
+\setlength{\headheight}{15pt}
+\doublespacing
+
+\title{An Overview of the Reed-Frost Model}
+\author{Bernadette Franulovich \\ University of Idaho}
+\date{Statistical Ecology (STAT 555) \\ Dr. Brian Dennis \\ April 2021}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+\lhead{An Overview of the Reed-Frost Model} 
+\rhead{\thepage} 
+\cfoot{}
+
+\section{Introduction and Background}
+\input{Introduction_Background}
+
+\section{Setup}
+\input{Setup}
+
+\section{The Model}
+
+We will define the following terms that will be used in our model:
+\begin{center}
+
+$p =$ probability of transmission during adequate contact between a susceptible and infectious individual \\
+$I_t=$ the number of infectious individuals at time $t$ \\
+$S_t=$ the number of susceptible individuals at time $t$ \\
+$R_t=$ the number of recovered individuals at time $t$ 
+\end{center}
+Given our definition of $p$, the probability that two individuals will not have adequate contact with each other is $1-p=q$. This means that the probability that an individual \emph{does not} come into contact with any \emph{infectious} individuals during time $t$ is $q^{I_t}$. This implies:
+$$1-q^{I_t},$$
+is the probability that an infectious individual will infect a susceptible individual in time $t$. 
+
+
+\subsection{Deterministic}
+
+
+The deterministic form of the Reed-Frost Model is as follows:
+\begin{equation}
+     I_{t+1}=S_t(1-q^{I_t})
+\end{equation}
+
+
+We can recall our assumptions that individuals in the population move into the recovered state after one time step, meaning that $I_t$ and $I_{t+1}$ are independent and that our susceptible individuals in the successive time step are comprised of the number of susceptible individuals in the previous time step after removing the individuals who became infectious:
+\begin{equation}
+    S_{t+1}=S_t-I_{t+1}
+\end{equation}
+Using the same reasoning for the number of  recovered individuals:
+
+\begin{equation}
+   R_{t+1}=R_t+I_t
+\end{equation}
+
+These equations give the counts of individuals in the three states at each time step. 
+
+The following plots \footnote{see appendix for code used to generate all plots} (figures 1 and 2) show a simulation for a deterministic model where the probability of transmission is $p=0.10$, there are initially 200 susceptible individuals in the population ($S_0=200$) and there is initially one infectious individual ($I_0=1$):
+
+
+<< deterministic,cache=T,echo=F,fig.pos="H",fig.cap=c("A plot of the number of infectious individuals over time as modeled by the deterministic Reed-Frost Model with initial conditions of $p=0.10,S_0=200,I_0=1$.","A plot of the number of susceptible individuals over time as modeled by the deterministic Reed-Frost Model with initial conditions of $p=0.10,S_0=200,I_0=1$.")>>=
+
+p=0.01
+q=1-p
+I=rep(0,15)
+S=rep(0,15)
+S[1]=200
+I[1]=1
+for (t in 1:15){
+  I[t+1]=S[t]*(1-q^(I[t]))
+  S[t+1]=S[t]-I[t+1]
+}
+plot(I,ylab="Number of Infected Individuals",xlab="Time",
+     main="Deterministic Model of Infected Individuals")
+lines(I,lty=2,col="#6666FF")
+plot(S,ylab="Number of Susceptible Individuals",xlab="Time",
+     main="Deterministic Model of Susceptible Individuals")
+lines(S,lty=2,col="#9900CC")
+     
+@
+
+It can be observed from our example that when there are no longer any infectious individuals in the population, there are some individuals who remained susceptible and never contracted the disease. In this simulation (with $p=0.10$) there were 39 out of the original 200 susceptible individuals remaining. 
+
+\subsection{Stochastic}
+The stochastic version of the Reed-Frost Model uses the same parameters and setup as the deterministic version. The parameters $p,S_t,I_t,R_t$ all represent the same quantities and the probability that a susceptible individual will become infected in time $t$ is still $1-q^{I_t}.$ 
+
+However, what sets it apart from the deterministic model is that now $I_{t+1}$ has a probability distribution to ‘add-in’ some randomness. This is a type of demographic stochasticity since $I_{t+1}$ is now a random variable. Therefore we now have: 
+
+$$ I_{t+1} \sim Binomial(S_t, 1-q^{I_t}).$$ 
+From this we know the probability that the number of infectious individuals, $I_{t+1}$, is equal to some number $x$ would be:
+
+\begin{equation}
+  P(I_{t+1}= x) = {S_t \choose x} (1-q^{I_t})^x( q^{I_t}) ^{S_t-x} 
+\end{equation}
+
+Just like the deterministic model, the number of susceptible individual in time $t+1$ is the number of susceptibles in the previous time step minus the newly infectious individuals: 
+\begin{equation}
+ S_{t+1}=S_t-I_{t+1}   
+\end{equation}
+
+And the number of recovered can be caclualed the same as well (see equation 3).
+However, unlike the deterministic model above, when we input our initial conditions of $p,I_t,S_t$ into the stochastic model, we will not get the same number of individuals in each state at each time step as we did with the deterministic model. Therefore, we must run a simulation multiple times to see the trends of the model with the initial conditions. 
+
+We can consider an example where we use the same parameters as our deterministic example ($p=0.10,S_0=200,I_0=1$), but now we will have our program plug in our initial conditions 10 times to our equations 4 and 5 (seen above). The next plots show the results: 
+
+<<stochasticfunc,echo=F>>=
+reedfrost <- function(p, I0, S0, n) {
+  s<-St<-rep(S0,n)
+  i<-It<-rep(I0,n)
+  time<-0
+  while (sum(It)>0){
+    It<-rbinom(n,St,1-(q^It))
+    St<-St-It
+    i<-rbind(i,It)
+    s<-rbind(s,St)
+    time<-time+1
+  }
+  i<-as.matrix(i)
+  s<-as.matrix(s)
+  list(I0=I0,S0=S0,p=p,n=n,i=i,s=s)
+}
+## Number of infected plot ## 
+infect.plot<-function(rfsim){
+  t<-nrow(rfsim$i)-1 # time it takes to reach zero infectious
+  plot(x=(0:t),y=rfsim$i[,1],type="l",ylim=c(0,max(rfsim$i)),
+       xlab="Time",ylab="Number of Infectious Individuals",
+       main="Stochastic Model of Infected Individuals")
+  n<-ncol(rfsim$i)
+  if (ncol(rfsim$i)>1){
+    for (i in 2:n){
+      lines(x=0:t,y=rfsim$i[,i],col=i)
+    }
+  }
+}
+## Number of susceptible plot ## 
+sus.plot<-function(rfsim){
+  t<-nrow(rfsim$s)-1 # time it takes to reach zero infectious
+  plot(x=(0:t),y=rfsim$s[,1],type="l",ylim=c(0,max(rfsim$s)),
+       xlab="Time",ylab="Number of Susceptible Individuals",
+       main="Stochastic Model of Susceptible Individuals")
+  n<-ncol(rfsim$s)
+  if (ncol(rfsim$s)>1){
+    for (i in 2:n){
+      lines(x=0:t,y=rfsim$s[,i],col=i)
+    }
+  }
+}
+@
+<<stochasticplots,cache=TRUE,echo=FALSE,fig.pos="H",fig.cap=c("A plot of the stochastic Reed-Frost model of the number of infectious individuals over time with initial conditions of $p=0.10,S_0=200,I_0=1$.","A plot of the stochastic Reed-Frost model of the number of susceptible individuals over time with initial conditions of $p=0.10,S_0=200,I_0=1$.")>>=
+
+rf.result <- reedfrost(p=0.010, I0=1, S0=200, n=10)
+infect.plot(rf.result)
+sus.plot(rf.result)
+@
+
+\section{Parameter Estimation}
+\input{parameterestimation}
+%continued from parameter estimation section
+%starting with the code to calculate q-hat
+
+<<MLEqhat, echo=FALSE>>=
+I1<-c(3,65,425,10,0) 
+S1<-c(500,435,10,0,0)
+rf.llike<-function(q,I,S){
+  LL<-rep(0,length(I)-1)
+  for (t in 1:(length(I)-1)){
+    LL[t]<-lfactorial(S[t])-lfactorial(I[t+1])-lfactorial(S[t]-I[t+1])+
+      (I[t+1])*log(1-q^I[t])+
+        I[t]*(S[t]-I[t+1])*log(q)
+  }
+  LL<-list(LL)
+  LL<-rapply( LL, f=function(x) ifelse(is.nan(x),0,x), how="replace" )
+  LL<-unlist(LL)
+  sum(LL)
+}
+MLE=optimize(f=rf.llike,I=I1,S=S1,lower=0,upper=1,
+            maximum=TRUE)
+qhat=MLE$maximum                    #ML estimate of q
+print(c("qhat=",qhat))
+@
+
+Our code tells us that $\hat{q}\approx 0.947$ which gives us a $\hat{p}$ value of 0.053. This makes sense since we used $p=0.05$ in our stochastic model to simulate the data used in the maximum likelihood calculation.
+
+The following plot shows our log-likelihood function against q and again we can see that the log-likelihood is maximized at $q \approx 0.95$ 
+
+<<MLEplot, echo=FALSE,fig.pos="H",fig.width=7,fig.height=5,fig.cap="A plot of the log-likelihood function of the Reed-Frost Model with parameters $I_0=3, S_0=500$. We can see that the log-likelihood is maximized at around $q=0.95$">>=
+llikeval=MLE$objective 
+qs<-seq(0,1,by=0.001)
+rf.llikevals<-sapply(qs,rf.llike,I=I1,S=S1)
+plot(qs,rf.llikevals,type="l",main="Log-Likelihood of Reed-Frost Model",
+     xlab="q (1-p)",
+     ylab="Log-Likelihood")
+abline(v=qhat,lty=2,col="deeppink3")
+abline(h=llikeval,lty=2,col="deeppink3")
+@
+
+\section{Conclusion}
+\input{conclusion}
+
+\newpage
+
+\section{Appendix}
+Code used to simulate the deterministic Reed-Frost Model:
+<<deterministic,echo=TRUE,eval=FALSE>>=
+@
+
+Code used to simulate the stochastic Reed-Frost Model:
+<<stochasticfunc,echo=TRUE,eval=FALSE>>=
+@
+MLE caclulation code:
+<<MLEqhat, echo=TRUE,eval=FALSE>>=
+@
+
+MLE plot code:
+<<MLEplot,echo=TRUE,eval=FALSE>>=
+@
+
+
+\newpage
+\bibliographystyle{plain}
+\bibliography{bibliography.bib}
+
+\end{document}
