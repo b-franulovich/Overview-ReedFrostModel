@@ -1,4 +1,5 @@
-# An Overview of the Reed-Frost Model - A Simple Epidemic Model
+# An Overview of the Reed-Frost Model 
+## The story of a simple epidemic model
 
 This paper is an exploration of the Reed-Frost Model which was developed in the 1920s by Lowell Reed and Hampton Wade Frost. It includes an in-depth overview and 
 discussion of the model as well as deterministic and stochastic simulations, and parameter estimation.
